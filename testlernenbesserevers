@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mein Lern-Test – Klasse 4</title>
+<style>
+  :root{
+    --paper:#FFFDF7; --grid:#D9E8F4; --ink:#2B2B3A; --muted:#6B6B7B;
+    --coral:#FF6B4A; --blue:#2D9CDB; --blue-d:#1B7BB5; --teal:#16B6A4;
+    --green:#4CAF6E; --green-d:#369155; --yellow:#FFC83D; --red:#E5524A; --line:#E7DFCF;
+    --shadow:0 8px 0 rgba(0,0,0,.08);
+    --display:'Trebuchet MS','Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+    --body:'Verdana','Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:var(--body);color:var(--ink);background-color:var(--paper);
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:26px 26px;min-height:100vh;padding:18px 14px 60px;}
+  .wrap{max-width:860px;margin:0 auto;}
+
+  header{text-align:center;margin:6px 0 26px;}
+  header h1{font-family:var(--display);font-weight:bold;font-size:clamp(28px,6vw,46px);margin:0;letter-spacing:.3px;}
+  header p{margin:6px 0 0;color:var(--muted);font-size:clamp(14px,2.6vw,18px);font-weight:bold;}
+
+  .screen{display:none;animation:pop .35s ease;}
+  .screen.active{display:block;}
+  @keyframes pop{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+
+  .pick-title{text-align:center;font-family:var(--display);font-weight:bold;font-size:22px;margin:0 0 18px;color:var(--muted);}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media(max-width:620px){.cards{grid-template-columns:1fr;}}
+  .card{border:3px solid var(--ink);border-radius:22px;background:#fff;cursor:pointer;overflow:hidden;box-shadow:var(--shadow);transition:transform .15s ease,box-shadow .15s ease;text-align:left;width:100%;font-family:var(--body);}
+  .card:hover{transform:translateY(-5px);box-shadow:0 13px 0 rgba(0,0,0,.10);}
+  .card:active{transform:translateY(0);box-shadow:0 4px 0 rgba(0,0,0,.10);}
+  .card .top{padding:26px 22px 18px;color:#fff;}
+  .card.math .top{background:var(--blue);}
+  .card.sach .top{background:var(--green);}
+  .card .emoji{font-size:46px;line-height:1;}
+  .card h2{font-family:var(--display);font-weight:bold;font-size:28px;margin:10px 0 2px;}
+  .card .sub{font-size:14px;font-weight:bold;opacity:.92;}
+  .card ul{margin:14px 20px 18px;padding:0 0 0 18px;color:var(--muted);font-weight:bold;font-size:14px;line-height:1.7;}
+  .card .go{display:inline-block;margin:0 20px 20px;padding:8px 18px;border-radius:30px;font-family:var(--display);font-weight:bold;color:#fff;background:var(--coral);}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+  .back{border:3px solid var(--ink);background:#fff;border-radius:30px;padding:8px 16px;font-family:var(--display);font-weight:bold;font-size:15px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.1);}
+  .back:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.1);}
+  .test-title{font-family:var(--display);font-weight:bold;font-size:clamp(20px,4vw,28px);margin:0;}
+  .badge{background:var(--yellow);border:3px solid var(--ink);border-radius:30px;padding:5px 14px;font-family:var(--display);font-weight:bold;}
+
+  .modebar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#fff;border:3px solid var(--ink);border-radius:18px;padding:12px 14px;margin-bottom:18px;box-shadow:var(--shadow);}
+  .modelabel{font-family:var(--display);font-weight:bold;}
+  .modebtn{font-family:var(--display);font-weight:bold;font-size:14px;border:2px solid var(--ink);border-radius:30px;padding:7px 14px;background:#fff;cursor:pointer;}
+  .modebtn.active{background:var(--green);color:#fff;}
+
+  .section{background:#fff;border:3px solid var(--ink);border-radius:20px;margin-bottom:18px;overflow:hidden;box-shadow:var(--shadow);}
+  .section > h3{margin:0;padding:13px 18px;font-family:var(--display);font-weight:bold;font-size:18px;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .section .pts{font-size:13px;background:rgba(255,255,255,.25);padding:3px 10px;border-radius:20px;}
+  .c-blue>h3{background:var(--blue);} .c-coral>h3{background:var(--coral);} .c-teal>h3{background:var(--teal);}
+  .c-green>h3{background:var(--green);} .c-purple>h3{background:#8E6FD8;} .c-pink>h3{background:#E36D9E;}
+  .body{padding:14px 18px 18px;}
+  .hint{font-size:13px;color:var(--muted);font-weight:bold;margin:-2px 0 12px;line-height:1.5;}
+
+  .q{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 0;border-bottom:2px dashed var(--line);font-size:clamp(17px,3.4vw,20px);font-weight:bold;}
+  .q:last-child{border-bottom:none;}
+  .q .num{color:var(--blue-d);min-width:24px;font-family:var(--display);}
+  .q .task{font-family:var(--display);font-weight:bold;letter-spacing:.3px;}
+
+  .chain{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 0;border-bottom:2px dashed var(--line);}
+  .chain:last-child{border-bottom:none;}
+  .chain .start{font-family:var(--display);font-weight:bold;font-size:20px;background:var(--blue);color:#fff;min-width:46px;height:46px;padding:0 6px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid var(--ink);}
+  .chain .start.given{background:var(--yellow);color:var(--ink);}
+  .chain .op{font-family:var(--display);font-weight:bold;font-size:16px;background:#FFF0D6;border:2px solid var(--ink);border-radius:10px;padding:5px 9px;white-space:nowrap;}
+  .backtag{display:inline-block;background:var(--coral);color:#fff;font-family:var(--display);font-weight:bold;font-size:12px;border:2px solid var(--ink);border-radius:20px;padding:2px 9px;margin-right:4px;}
+
+  input.ans,select.ans{font-family:var(--display);font-weight:bold;font-size:18px;color:var(--ink);border:3px solid var(--ink);border-radius:12px;background:#FFFDF7;padding:6px 8px;text-align:center;width:84px;outline:none;}
+  select.ans{width:auto;min-width:96px;padding-right:6px;text-align:left;}
+  select.ans.wide{min-width:155px;}
+  input.ans[data-type="text"]{width:180px;text-align:left;font-size:16px;}
+  input.ans:focus,select.ans:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(45,156,219,.25);}
+  input.ans::-webkit-outer-spin-button,input.ans::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .ans.correct{border-color:var(--green-d);background:#E9F8EE;}
+  .ans.wrong{border-color:var(--red);background:#FCEBEA;}
+  .mark{font-family:var(--display);font-weight:bold;font-size:18px;}
+  .mark.ok{color:var(--green-d);} .mark.no{color:var(--red);}
+  .solution{font-size:14px;font-weight:bold;color:var(--red);font-family:var(--body);}
+
+  /* schriftliches Rechnen */
+  .written{display:inline-block;border:2px solid var(--line);border-radius:14px;padding:12px 16px;margin:8px 14px 8px 0;vertical-align:top;background:#FFFDF7;min-width:170px;}
+  .written .prob{font-family:var(--display);font-weight:bold;font-size:23px;letter-spacing:2px;margin-bottom:10px;text-align:center;}
+  .written .work{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:10px;}
+  .written .wm{font-size:12px;color:var(--muted);font-weight:bold;}
+  .carry{width:32px;height:30px;border:2px dashed #B9B0A0;border-radius:8px;background:#FAFAF4;text-align:center;font-family:var(--display);font-weight:bold;color:var(--muted);font-size:15px;outline:none;}
+  .written .ansline{font-family:var(--display);font-weight:bold;font-size:18px;display:flex;align-items:center;gap:8px;justify-content:center;}
+
+  table.mtab{border-collapse:collapse;margin:6px 0 2px;}
+  table.mtab th,table.mtab td{border:2px solid var(--ink);width:64px;height:50px;text-align:center;font-family:var(--display);font-weight:bold;font-size:18px;}
+  table.mtab th{background:var(--teal);color:#fff;}
+  table.mtab td.row-h{background:#EAF8F6;color:var(--teal);}
+  table.mtab input.ans{width:50px;border-radius:8px;border-width:2px;font-size:17px;padding:4px;}
+  .tab-scroll{overflow-x:auto;}
+
+  .flagq{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:2px dashed var(--line);flex-wrap:wrap;}
+  .flagq:last-child{border-bottom:none;}
+  .flag{width:66px;height:44px;border:2px solid var(--ink);border-radius:6px;overflow:hidden;flex:none;box-shadow:0 3px 0 rgba(0,0,0,.12);}
+  .flag svg{display:block;width:100%;height:100%;}
+  .flagq .lbl{font-family:var(--display);font-weight:bold;font-size:17px;}
+
+  .checkbar{text-align:center;margin:26px 0 6px;}
+  .btn-check{font-family:var(--display);font-weight:bold;font-size:22px;color:#fff;background:var(--coral);border:3px solid var(--ink);border-radius:40px;padding:14px 40px;cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.18);}
+  .btn-check:hover{filter:brightness(1.05);}
+  .btn-check:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,.18);}
+
+  .result{display:none;margin-top:24px;}
+  .result.show{display:block;animation:pop .4s ease;}
+  .result-card{border:3px solid var(--ink);border-radius:24px;background:#fff;overflow:hidden;box-shadow:var(--shadow);text-align:center;}
+  .result-card .rtop{padding:24px 20px;color:#fff;}
+  .result-card .score{font-family:var(--display);font-weight:bold;font-size:clamp(34px,8vw,56px);line-height:1;}
+  .result-card .score small{font-size:.5em;opacity:.9;}
+  .bar{height:18px;background:rgba(255,255,255,.3);border-radius:20px;margin:16px auto 0;max-width:380px;overflow:hidden;border:2px solid rgba(255,255,255,.6);}
+  .bar > span{display:block;height:100%;background:#fff;border-radius:20px;width:0;transition:width .8s ease;}
+  .note-big{font-family:var(--display);font-weight:bold;font-size:clamp(30px,7vw,46px);margin:18px 0 2px;}
+  .note-txt{font-weight:bold;font-size:20px;}
+  .cheer{font-size:18px;font-weight:bold;margin-top:14px;}
+  .rbody{padding:18px 20px 22px;}
+  .kt{font-weight:bold;margin:0 0 8px;color:var(--muted);}
+  .key{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:520px;margin:6px auto 18px;font-size:13px;font-weight:bold;}
+  .key div{border:2px solid var(--line);border-radius:10px;padding:6px 4px;}
+  .key .kn{font-family:var(--display);font-size:18px;}
+  .key .kr{color:var(--muted);}
+  .rbtns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+  .rbtns button{font-family:var(--display);font-weight:bold;font-size:16px;border:3px solid var(--ink);border-radius:30px;padding:10px 22px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.12);}
+  .rbtns button:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.12);}
+  .btn-again{background:var(--yellow);} .btn-home{background:#fff;}
+
+  footer{text-align:center;color:var(--muted);font-size:13px;font-weight:bold;margin-top:30px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📚 Mein Lern-Test</h1>
+    <p>Klasse 4 &middot; Wähle dein Fach und teste dich selbst!</p>
+  </header>
+
+  <!-- ===== AUSWAHL ===== -->
+  <section id="screen-start" class="screen active">
+    <p class="pick-title">Was möchtest du üben?</p>
+    <div class="cards">
+      <button class="card math" type="button" data-go="screen-math">
+        <div class="top"><div class="emoji">🔢</div><h2>Mathe</h2><div class="sub">Rechnen, Einmaleins &amp; mehr</div></div>
+        <ul>
+          <li>Rechenketten (nur × und :)</li>
+          <li>Mal &amp; Geteilt mit Nullen</li>
+          <li>Mal-Tabelle, mm/cm/m, km</li>
+          <li>Größer / kleiner Zeichen</li>
+          <li>Schriftlich rechnen (kein Blatt nötig!)</li>
+        </ul>
+        <span class="go">Los geht's →</span>
+      </button>
+      <button class="card sach" type="button" data-go="screen-sach">
+        <div class="top"><div class="emoji">🌍</div><h2>Sachunterricht</h2><div class="sub">Nachbarländer von Deutschland</div></div>
+        <ul>
+          <li>Flaggen, Länder &amp; Hauptstädte</li>
+          <li>Quizfragen zu den Ländern</li>
+          <li>Du wählst: Ankreuzen oder Schreiben</li>
+        </ul>
+        <span class="go">Los geht's →</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===== MATHE ===== -->
+  <section id="screen-math" class="screen">
+    <div class="topbar">
+      <button class="back" type="button" data-go="screen-start">← Zurück</button>
+      <h2 class="test-title">🔢 Mathe-Test</h2>
+      <span class="badge">/ 55 Punkte</span>
+    </div>
+
+    <!-- 1 Rechenketten -->
+    <div class="section c-blue">
+      <h3>1. Rechenketten <span class="pts">8 Punkte</span></h3>
+      <div class="body">
+        <p class="hint">Folge den Pfeilen und schreib das Ergebnis ins Kästchen. Nur × und : !<br>Bei der <b>letzten</b> Kette steht das Ergebnis schon rechts – rechne <b>rückwärts</b> (× wird zu :).</p>
+        <div class="chain">
+          <span class="start">6</span>
+          <span class="op">× 7 →</span><input class="ans" data-type="num" data-answer="42" data-points="1" inputmode="numeric">
+          <span class="op">: 3 →</span><input class="ans" data-type="num" data-answer="14" data-points="1" inputmode="numeric">
+          <span class="op">× 5 →</span><input class="ans" data-type="num" data-answer="70" data-points="1" inputmode="numeric">
+        </div>
+        <div class="chain">
+          <span class="start">9</span>
+          <span class="op">× 8 →</span><input class="ans" data-type="num" data-answer="72" data-points="1" inputmode="numeric">
+          <span class="op">: 6 →</span><input class="ans" data-type="num" data-answer="12" data-points="1" inputmode="numeric">
+          <span class="op">× 4 →</span><input class="ans" data-type="num" data-answer="48" data-points="1" inputmode="numeric">
+        </div>
+        <div class="chain">
+          <span class="backtag">rückwärts</span>
+          <input class="ans" data-type="num" data-answer="4" data-points="1" inputmode="numeric">
+          <span class="op">× 6 →</span><input class="ans" data-type="num" data-answer="24" data-points="1" inputmode="numeric">
+          <span class="op">× 4 →</span><span class="start given">96</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 Lücken -->
+    <div class="section c-purple">
+      <h3>2. Welche Zahl fehlt? (× und :) <span class="pts">6 Punkte</span></h3>
+      <div class="body">
+        <div class="q"><span class="num">1)</span><span class="task">6 ×</span><input class="ans" data-type="num" data-answer="9" data-points="1" inputmode="numeric"><span class="task">= 54</span></div>
+        <div class="q"><span class="num">2)</span><input class="ans" data-type="num" data-answer="9" data-points="1" inputmode="numeric"><span class="task">× 7 = 63</span></div>
+        <div class="q"><span class="num">3)</span><input class="ans" data-type="num" data-answer="72" data-points="1" inputmode="numeric"><span class="task">: 8 = 9</span></div>
+        <div class="q"><span class="num">4)</span><span class="task">96 :</span><input class="ans" data-type="num" data-answer="12" data-points="1" inputmode="numeric"><span class="task">= 8</span></div>
+        <div class="q"><span class="num">5)</span><span class="task">8 ×</span><input class="ans" data-type="num" data-answer="12" data-points="1" inputmode="numeric"><span class="task">= 96</span></div>
+        <div class="q"><span class="num">6)</span><input class="ans" data-type="num" data-answer="42" data-points="1" inputmode="numeric"><span class="task">: 6 = 7</span></div>
+      </div>
+    </div>
+
+    <!-- 3 Mal & Geteilt mit Nullen -->
+    <div class="section c-coral">
+      <h3>3. Mal &amp; Geteilt mit Nullen <span class="pts">8 Punkte</span></h3>
+      <div class="body">
+        <p class="hint">Tipp: Erst das kleine Einmaleins rechnen, dann die Nullen anhängen. Z. B. 7 × 8 = 56 → 700 × 80 = 56000.</p>
+        <div class="q"><span class="num">1)</span><span class="task">20 × 40 =</span><input class="ans" data-type="num" data-answer="800" data-points="1" inputmode="numeric"></div>
+        <div class="q"><span class="num">2)</span><span class="task">30 × 50 =</span><input class="ans" data-type="num" data-answer="1500" data-points="1" inputmode="numeric"></div>
+        <div class="q"><span class="num">3)</span><span class="task">900 × 10 =</span><input class="ans" data-type="num" data-answer="9000" data-points="1" inputmode="numeric"></div>
+        <div class="q"><span class="num">4)</span><span class="task">700 × 80 =</span><input class="ans" data-type="num" data-answer="56000" data-points="1" inputmode="numeric"></div>
+        <div class="q"><span class="num">5)</span><span class="task">800 : 40 =</span><input class="ans" data-type="num" data-answer="20" data-points="1" inputmode="numeric"></div>
+        <div class="q"><span class="num">6)</span><span class="task">1500 : 30 =</span><input class="ans" data-type="num" data-answer="50" data-points="1" inputmode="numeric"></div>
+        <div class="q"><span class="num">7)</span><span class="task">9000 : 100 =</span><input class="ans" data-type="num" data-answer="90" data-points="1" inputmode="numeric"></div>
+        <div class="q"><span class="num">8)</span><span class="task">56000 : 80 =</span><input class="ans" data-type="num" data-answer="700" data-points="1" inputmode="numeric"></div>
+      </div>
+    </div>
+
+    <!-- 4 Mal-Tabelle -->
+    <div class="section c-teal">
+      <h3>4. Mal-Tabelle <span class="pts">8 Punkte</span></h3>
+      <div class="body">
+        <p class="hint">Fülle die Tabelle aus: Zeile × Spalte.</p>
+        <div class="tab-scroll">
+        <table class="mtab">
+          <tr><th>×</th><th>6</th><th>8</th><th>9</th><th>12</th></tr>
+          <tr><td class="row-h">7</td>
+            <td><input class="ans" data-type="num" data-answer="42" data-points="1" inputmode="numeric"></td>
+            <td><input class="ans" data-type="num" data-answer="56" data-points="1" inputmode="numeric"></td>
+            <td><input class="ans" data-type="num" data-answer="63" data-points="1" inputmode="numeric"></td>
+            <td><input class="ans" data-type="num" data-answer="84" data-points="1" inputmode="numeric"></td></tr>
+          <tr><td class="row-h">9</td>
+            <td><input class="ans" data-type="num" data-answer="54" data-points="1" inputmode="numeric"></td>
+            <td><input class="ans" data-type="num" data-answer="72" data-points="1" inputmode="numeric"></td>
+            <td><input class="ans" data-type="num" data-answer="81" data-points="1" inputmode="numeric"></td>
+            <td><input class="ans" data-type="num" data-answer="108" data-points="1" inputmode="numeric"></td></tr>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 Längen -->
+    <div class="section c-pink">
+      <h3>5. Längen: mm, cm und m <span class="pts">6 Punkte</span></h3>
+      <div class="body">
+        <p class="hint">Tipp: 1 cm = 10 mm &nbsp;·&nbsp; 1 m = 100 cm</p>
+        <div class="q"><span class="num">1)</span><span class="task">3 cm 8 mm =</span><input class="ans" data-type="num" data-answer="38" data-points="1" inputmode="numeric"><span class="task">mm</span></div>
+        <div class="q"><span class="num">2)</span><span class="task">200 cm =</span><input class="ans" data-type="num" data-answer="2" data-points="1" inputmode="numeric"><span class="task">m</span></div>
+        <div class="q"><span class="num">3)</span><span class="task">4 m =</span><input class="ans" data-type="num" data-answer="400" data-points="1" inputmode="numeric"><span class="task">cm</span></div>
+        <div class="q"><span class="num">4)</span><span class="task">1 m 20 cm =</span><input class="ans" data-type="num" data-answer="120" data-points="1" inputmode="numeric"><span class="task">cm</span></div>
+        <div class="q"><span class="num">5)</span><span class="task">9 cm =</span><input class="ans" data-type="num" data-answer="90" data-points="1" inputmode="numeric"><span class="task">mm</span></div>
+        <div class="q"><span class="num">6)</span><span class="task">1 m 5 cm =</span><input class="ans" data-type="num" data-answer="105" data-points="1" inputmode="numeric"><span class="task">cm</span></div>
+      </div>
+    </div>
+
+    <!-- 6 km -->
+    <div class="section c-blue">
+      <h3>6. Kilometer vergleichen <span class="pts">4 Punkte</span></h3>
+      <div class="body">
+        <p class="hint">Setze &lt; , = oder &gt; ein. Tipp: ¼ km = 250 m, ½ km = 500 m, ¾ km = 750 m</p>
+        <div class="q"><span class="num">1)</span><span class="task">¼ km</span><select class="ans" data-type="pick" data-answer="lt" data-points="1"><option value="">?</option><option value="lt">&lt; kleiner</option><option value="eq">= gleich</option><option value="gt">&gt; größer</option></select><span class="task">300 m</span></div>
+        <div class="q"><span class="num">2)</span><span class="task">¾ km</span><select class="ans" data-type="pick" data-answer="eq" data-points="1"><option value="">?</option><option value="lt">&lt; kleiner</option><option value="eq">= gleich</option><option value="gt">&gt; größer</option></select><span class="task">750 m</span></div>
+        <div class="q"><span class="num">3)</span><span class="task">2 km</span><select class="ans" data-type="pick" data-answer="gt" data-points="1"><option value="">?</option><option value="lt">&lt; kleiner</option><option value="eq">= gleich</option><option value="gt">&gt; größer</option></select><span class="task">1900 m</span></div>
+        <div class="q"><span class="num">4)</span><span class="task">½ km</span><select class="ans" data-type="pick" data-answer="lt" data-points="1"><option value="">?</option><option value="lt">&lt; kleiner</option><option value="eq">= gleich</option><option value="gt">&gt; größer</option></select><span class="task">600 m</span></div>
+      </div>
+    </div>
+
+    <!-- 7 Vergleichszeichen -->
+    <div class="section c-coral">
+      <h3>7. Größer oder kleiner? <span class="pts">6 Punkte</span></h3>
+      <div class="body">
+        <p class="hint">Rechne erst beide Seiten, dann setze &lt; , = oder &gt; ein.</p>
+        <div class="q"><span class="num">1)</span><span class="task">12 × 7</span><select class="ans" data-type="pick" data-answer="gt" data-points="1"><option value="">?</option><option value="lt">&lt; kleiner</option><option value="eq">= gleich</option><option value="gt">&gt; größer</option></select><span class="task">9 × 9</span></div>
+        <div class="q"><span class="num">2)</span><span class="task">25 × 4</span><select class="ans" data-type="pick" data-answer="eq" data-points="1"><option value="">?</option><option value="lt">&lt; kleiner</option><option value="eq">= gleich</option><option value="gt">&gt; größer</option></select><span class="task">50 × 2</span></div>
+        <div class="q"><span class="num">3)</span><span class="task">15 × 6</span><select class="ans" data-type="pick" data-answer="gt" data-points="1"><option value="">?</option><option value="lt">&lt; kleiner</option><option value="eq">= gleich</option><option value="gt">&gt; größer</option></select><span class="task">8 × 11</span></div>
+        <div class="q"><span class="num">4)</span><span class="task">13 × 4</span><select class="ans" data-type="pick" data-answer="lt" data-points="1"><option value="">?</option><option value="lt">&lt; kleiner</option><option value="eq">= gleich</option><option value="gt">&gt; größer</option></select><span class="task">7 × 8</span></div>
+        <div class="q"><span class="num">5)</span><span class="task">11 × 9</span><select class="ans" data-type="pick" data-answer="lt" data-points="1"><option value="">?</option><option value="lt">&lt; kleiner</option><option value="eq">= gleich</option><option value="gt">&gt; größer</option></select><span class="task">10 × 10</span></div>
+        <div class="q"><span class="num">6)</span><span class="task">6 × 12</span><select class="ans" data-type="pick" data-answer="eq" data-points="1"><option value="">?</option><option value="lt">&lt; kleiner</option><option value="eq">= gleich</option><option value="gt">&gt; größer</option></select><span class="task">8 × 9</span></div>
+      </div>
+    </div>
+
+    <!-- 8 Schriftlich auf dem Bildschirm -->
+    <div class="section c-purple">
+      <h3>8. Schriftlich rechnen <span class="pts">9 Punkte</span></h3>
+      <div class="body">
+        <p class="hint"><b>Kein Blatt nötig – rechne hier!</b> Von rechts nach links. Die Merkzahl (Übertrag) kannst du in die kleinen Kästchen schreiben.<br>
+        <b>Beispiel 162 × 2:</b> 2×2 = 4 · 2×6 = 12 (2 hinschreiben, 1 merken) · 2×1 = 2 + 1 = 3 → <b>324</b>. Jede Aufgabe = 3 Punkte.</p>
+        <div class="written">
+          <div class="prob">162 × 2</div>
+          <div class="work"><span class="wm">Merkzahl:</span><input class="carry"><input class="carry"></div>
+          <div class="ansline">= <input class="ans" data-type="num" data-answer="324" data-points="3" inputmode="numeric"></div>
+        </div>
+        <div class="written">
+          <div class="prob">274 × 3</div>
+          <div class="work"><span class="wm">Merkzahl:</span><input class="carry"><input class="carry"></div>
+          <div class="ansline">= <input class="ans" data-type="num" data-answer="822" data-points="3" inputmode="numeric"></div>
+        </div>
+        <div class="written">
+          <div class="prob">318 × 4</div>
+          <div class="work"><span class="wm">Merkzahl:</span><input class="carry"><input class="carry"></div>
+          <div class="ansline">= <input class="ans" data-type="num" data-answer="1272" data-points="3" inputmode="numeric"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="checkbar"><button class="btn-check" type="button" data-check="screen-math">✏️ Auswerten</button></div>
+    <div id="screen-math-result" class="result"></div>
+  </section>
+
+  <!-- ===== SACHUNTERRICHT ===== -->
+  <section id="screen-sach" class="screen">
+    <div class="topbar">
+      <button class="back" type="button" data-go="screen-start">← Zurück</button>
+      <h2 class="test-title">🌍 Sachunterricht-Test</h2>
+      <span class="badge">/ 55 Punkte</span>
+    </div>
+    <div class="modebar">
+      <span class="modelabel">Test-Art:</span>
+      <button class="modebtn active" type="button" data-mode="pick">☑️ Ankreuzen</button>
+      <button class="modebtn" type="button" data-mode="text">✍️ Selbst schreiben</button>
+      <button class="modebtn" type="button" data-mode="mix">🔀 Beides zusammen</button>
+    </div>
+    <div id="sach-questions"></div>
+    <div class="checkbar"><button class="btn-check" type="button" data-check="screen-sach">✏️ Auswerten</button></div>
+    <div id="screen-sach-result" class="result"></div>
+  </section>
+
+  <footer>Viel Erfolg! 🍀 &middot; Du kannst den Test so oft machen, wie du willst.</footer>
+</div>
+
+<script>
+  var SYM = {lt:'<', gt:'>', eq:'='};
+  function norm(s){ return (s||'').toString().toLowerCase().replace(/\s+/g,'').replace(/[.\-_,!?'’]/g,''); }
+  function safeScrollTop(){ try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ try{ window.scrollTo(0,0); }catch(_e){} } }
+  function safeScrollTo(el){ try{ el.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){} }
+
+  function showScreen(id){
+    var s=document.querySelectorAll('.screen');
+    for(var i=0;i<s.length;i++){ s[i].classList.remove('active'); }
+    var el=document.getElementById(id); if(el){ el.classList.add('active'); }
+    safeScrollTop();
+  }
+
+  function gradeFor(p){
+    if(p>=53) return {n:1,t:'sehr gut',c:'#2E9E54',cheer:'Super gemacht! 🌟 Du bist spitze!'};
+    if(p>=44) return {n:2,t:'gut',c:'#5BBA6F',cheer:'Toll gemacht! Weiter so! 👍'};
+    if(p>=36) return {n:3,t:'befriedigend',c:'#E0A92E',cheer:'Gut gemacht! 🙂 Üb noch ein bisschen.'};
+    if(p>=28) return {n:4,t:'ausreichend',c:'#E8902F',cheer:'Geschafft! 💪 Mit Übung wird es besser.'};
+    if(p>=14) return {n:5,t:'mangelhaft',c:'#E5694B',cheer:'Nicht aufgeben – probier es nochmal! 🍀'};
+    return {n:6,t:'ungenügend',c:'#E5524A',cheer:'Kopf hoch! Übung macht den Meister. 📚'};
+  }
+
+  /* ===== Sachunterricht-Daten ===== */
+  var F = {
+    fr:'<svg viewBox="0 0 60 40"><rect width="20" height="40" fill="#0055A4"/><rect x="20" width="20" height="40" fill="#fff"/><rect x="40" width="20" height="40" fill="#EF4135"/></svg>',
+    nl:'<svg viewBox="0 0 60 40"><rect width="60" height="40" fill="#21468B"/><rect width="60" height="26.66" fill="#fff"/><rect width="60" height="13.33" fill="#AE1C28"/></svg>',
+    at:'<svg viewBox="0 0 60 40"><rect width="60" height="40" fill="#ED2939"/><rect y="13.33" width="60" height="13.34" fill="#fff"/></svg>',
+    pl:'<svg viewBox="0 0 60 40"><rect width="60" height="40" fill="#DC143C"/><rect width="60" height="20" fill="#fff"/></svg>',
+    be:'<svg viewBox="0 0 60 40"><rect width="20" height="40" fill="#000"/><rect x="20" width="20" height="40" fill="#FAE042"/><rect x="40" width="20" height="40" fill="#ED2939"/></svg>',
+    dk:'<svg viewBox="0 0 60 40"><rect width="60" height="40" fill="#C8102E"/><rect x="18" width="9" height="40" fill="#fff"/><rect y="15.5" width="60" height="9" fill="#fff"/></svg>',
+    ch:'<svg viewBox="0 0 60 40"><rect width="60" height="40" fill="#D52B1E"/><rect x="26" y="9" width="8" height="22" fill="#fff"/><rect x="19" y="16" width="22" height="8" fill="#fff"/></svg>',
+    cz:'<svg viewBox="0 0 60 40"><rect width="60" height="20" fill="#fff"/><rect y="20" width="60" height="20" fill="#D7141A"/><polygon points="0,0 32,20 0,40" fill="#11457E"/></svg>',
+    lu:'<svg viewBox="0 0 60 40"><rect width="60" height="40" fill="#fff"/><rect width="60" height="13.33" fill="#ED2939"/><rect y="26.66" width="60" height="13.34" fill="#00A1DE"/></svg>'
+  };
+  var LANDS=[
+    {flag:F.fr, land:'Frankreich', landA:'Frankreich', cap:'Paris', capA:'Paris'},
+    {flag:F.nl, land:'Niederlande', landA:'Niederlande|Holland', cap:'Amsterdam', capA:'Amsterdam'},
+    {flag:F.at, land:'Österreich', landA:'Österreich|Oesterreich|Osterreich', cap:'Wien', capA:'Wien'},
+    {flag:F.pl, land:'Polen', landA:'Polen', cap:'Warschau', capA:'Warschau'},
+    {flag:F.be, land:'Belgien', landA:'Belgien', cap:'Brüssel', capA:'Brüssel|Bruessel|Brussel'},
+    {flag:F.dk, land:'Dänemark', landA:'Dänemark|Daenemark|Danemark', cap:'Kopenhagen', capA:'Kopenhagen'},
+    {flag:F.ch, land:'Schweiz', landA:'Schweiz', cap:'Bern', capA:'Bern'},
+    {flag:F.cz, land:'Tschechien', landA:'Tschechien|Tschechei', cap:'Prag', capA:'Prag'},
+    {flag:F.lu, land:'Luxemburg', landA:'Luxemburg|Luxembourg', cap:'Luxemburg', capA:'Luxemburg|Luxembourg'}
+  ];
+  var REVERSE=[
+    {cap:'Paris', land:'Frankreich', landA:'Frankreich'},
+    {cap:'Wien', land:'Österreich', landA:'Österreich|Oesterreich|Osterreich'},
+    {cap:'Amsterdam', land:'Niederlande', landA:'Niederlande|Holland'},
+    {cap:'Prag', land:'Tschechien', landA:'Tschechien|Tschechei'},
+    {cap:'Bern', land:'Schweiz', landA:'Schweiz'}
+  ];
+  var COUNTRY_OPTS=['Dänemark','Polen','Tschechien','Österreich','Schweiz','Frankreich','Luxemburg','Belgien','Niederlande'];
+  var CAPITAL_OPTS=['Kopenhagen','Warschau','Prag','Wien','Bern','Paris','Luxemburg','Brüssel','Amsterdam'];
+
+  function opts(arr){ var s=''; for(var i=0;i<arr.length;i++){ s+='<option>'+arr[i]+'</option>'; } return s; }
+  function pickField(answer,pts,arr,ph){ return '<select class="ans wide" data-type="pick" data-answer="'+answer+'" data-points="'+pts+'"><option value="">'+ph+'</option>'+opts(arr)+'</select>'; }
+  function textField(answer,pts,ph){ return '<input class="ans" data-type="text" data-answer="'+answer+'" data-points="'+pts+'" placeholder="'+ph+'" autocomplete="off">'; }
+
+  function flagSection(style){
+    var h='<div class="section c-green"><h3>1. Welche Flagge gehört zu welchem Land? <span class="pts">18 Punkte</span></h3><div class="body"><p class="hint">'+(style==='text'?'Schreib das Land selbst dazu.':'Wähle das richtige Land.')+' (je 2 Punkte)</p>';
+    for(var i=0;i<LANDS.length;i++){ var L=LANDS[i];
+      var fld=(style==='text')?textField(L.landA,2,'Land schreiben'):pickField(L.land,2,COUNTRY_OPTS,'Land wählen…');
+      h+='<div class="flagq"><div class="flag">'+L.flag+'</div><span class="lbl">'+(i+1)+')</span>'+fld+'</div>';
+    }
+    return h+'</div></div>';
+  }
+  function capitalSection(style){
+    var h='<div class="section c-blue"><h3>2. Wie heißt die Hauptstadt? <span class="pts">18 Punkte</span></h3><div class="body"><p class="hint">'+(style==='text'?'Schreib die Hauptstadt selbst.':'Wähle die richtige Hauptstadt.')+' (je 2 Punkte)</p>';
+    for(var i=0;i<LANDS.length;i++){ var L=LANDS[i];
+      var fld=(style==='text')?textField(L.capA,2,'Hauptstadt schreiben'):pickField(L.cap,2,CAPITAL_OPTS,'Hauptstadt…');
+      h+='<div class="q"><span class="num">'+(i+1)+')</span><span class="task">'+L.land+' →</span>'+fld+'</div>';
+    }
+    return h+'</div></div>';
+  }
+  function reverseSection(style){
+    var h='<div class="section c-coral"><h3>3. In welchem Land liegt diese Hauptstadt? <span class="pts">10 Punkte</span></h3><div class="body"><p class="hint">Jetzt andersherum! (je 2 Punkte)</p>';
+    for(var i=0;i<REVERSE.length;i++){ var R=REVERSE[i];
+      var fld=(style==='text')?textField(R.landA,2,'Land schreiben'):pickField(R.land,2,COUNTRY_OPTS,'Land…');
+      h+='<div class="q"><span class="num">'+(i+1)+')</span><span class="task">'+R.cap+' →</span>'+fld+'</div>';
+    }
+    return h+'</div></div>';
+  }
+  function quizSection(style){
+    var qs=[
+      {q:'Wie viele Nachbarländer hat Deutschland?', arr:['7','8','9','10'], ans:'9', textA:'9'},
+      {q:'Welches dieser Länder benutzt NICHT den Euro?', arr:['Frankreich','Österreich','Polen','Belgien'], ans:'Polen', textA:'Polen'},
+      {q:'Welche Sprache spricht man in Frankreich?', arr:['Deutsch','Französisch','Italienisch','Spanisch'], ans:'Französisch', textA:'Französisch|Franzoesisch|Franzosisch'}
+    ];
+    var h='<div class="section c-purple"><h3>4. Quizfragen <span class="pts">9 Punkte</span></h3><div class="body"><p class="hint">'+(style==='text'?'Schreib die Antwort selbst.':'Wähle die richtige Antwort.')+' (je 3 Punkte)</p>';
+    for(var i=0;i<qs.length;i++){ var Q=qs[i];
+      var fld=(style==='text')?textField(Q.textA,3,'Antwort'):('<select class="ans wide" data-type="pick" data-answer="'+Q.ans+'" data-points="3"><option value="">?</option>'+opts(Q.arr)+'</select>');
+      h+='<div class="q"><span class="num">'+(i+1)+')</span><span class="task" style="flex-basis:100%">'+Q.q+'</span>'+fld+'</div>';
+    }
+    return h+'</div></div>';
+  }
+  function renderSach(mode){
+    var fStyle=(mode==='text')?'text':'pick';
+    var cStyle=(mode==='pick')?'pick':'text';
+    var rStyle=cStyle;
+    var qStyle=(mode==='text')?'text':'pick';
+    document.getElementById('sach-questions').innerHTML =
+      flagSection(fStyle)+capitalSection(cStyle)+reverseSection(rStyle)+quizSection(qStyle);
+    var res=document.getElementById('screen-sach-result'); res.classList.remove('show'); res.innerHTML='';
+  }
+
+  /* ===== Auswertung ===== */
+  function clearMarks(f){
+    f.classList.remove('correct','wrong');
+    var next=f.nextElementSibling;
+    while(next && (next.classList.contains('mark')||next.classList.contains('solution'))){
+      var r=next; next=next.nextElementSibling; r.parentNode.removeChild(r);
+    }
+  }
+  function keyCell(n,t,range,active){
+    var style=(n===active)?' style="border-color:#2B2B3A;background:#FFF5D6;"':'';
+    return '<div'+style+'><div class="kn">'+n+'</div>'+t+'<br><span class="kr">'+range+'</span></div>';
+  }
+  function evaluate(screenId){
+    var screen=document.getElementById(screenId);
+    var fields=screen.querySelectorAll('.ans');
+    var got=0,max=0;
+    for(var i=0;i<fields.length;i++){
+      var f=fields[i];
+      var type=f.getAttribute('data-type');
+      var ans=f.getAttribute('data-answer');
+      var pts=parseInt(f.getAttribute('data-points'),10);
+      max+=pts;
+      var raw=(f.value||'');
+      var ok=false, solText='';
+      if(type==='num'){
+        var r=raw.replace(/\s+/g,'');
+        ok = (r!=='' && Number(r)===Number(ans));
+        solText=ans;
+      } else if(type==='text'){
+        var acc=ans.split('|'); var nz=norm(raw);
+        for(var k=0;k<acc.length;k++){ if(nz!=='' && norm(acc[k])===nz){ ok=true; break; } }
+        solText=acc[0];
+      } else {
+        ok = (raw===ans);
+        solText = SYM[ans] || ans;
+      }
+      clearMarks(f);
+      f.classList.add(ok?'correct':'wrong');
+      var mark=document.createElement('span');
+      mark.className='mark '+(ok?'ok':'no');
+      mark.textContent=ok?' ✓':' ✗';
+      f.parentNode.insertBefore(mark, f.nextSibling);
+      if(!ok){
+        var sol=document.createElement('span');
+        sol.className='solution';
+        sol.textContent=' richtig: '+solText;
+        mark.parentNode.insertBefore(sol, mark.nextSibling);
+      } else { got+=pts; }
+    }
+
+    var g=gradeFor(got);
+    var pct=max>0?Math.round(got/max*100):0;
+    var res=document.getElementById(screenId+'-result');
+    res.innerHTML=
+      '<div class="result-card">'+
+        '<div class="rtop" style="background:'+g.c+'">'+
+          '<div class="score">'+got+' <small>/ '+max+' Punkten</small></div>'+
+          '<div class="bar"><span class="barfill"></span></div>'+
+          '<div class="note-big">Note '+g.n+'</div>'+
+          '<div class="note-txt">'+g.t+'</div>'+
+          '<div class="cheer">'+g.cheer+'</div>'+
+        '</div>'+
+        '<div class="rbody">'+
+          '<div class="kt">Notenschlüssel</div>'+
+          '<div class="key">'+
+            keyCell(1,'sehr gut','53–55',g.n)+keyCell(2,'gut','44–52',g.n)+keyCell(3,'befriedigend','36–43',g.n)+
+            keyCell(4,'ausreichend','28–35',g.n)+keyCell(5,'mangelhaft','14–27',g.n)+keyCell(6,'ungenügend','0–13',g.n)+
+          '</div>'+
+          '<div class="rbtns">'+
+            '<button class="btn-again" type="button">🔄 Nochmal versuchen</button>'+
+            '<button class="btn-home" type="button">🏠 Fach wechseln</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    res.classList.add('show');
+    var again=res.querySelector('.btn-again'); var home=res.querySelector('.btn-home');
+    if(again){ again.addEventListener('click', function(){ resetTest(screenId); }); }
+    if(home){ home.addEventListener('click', function(){ showScreen('screen-start'); }); }
+    var bf=res.querySelector('.barfill');
+    setTimeout(function(){ if(bf){ bf.style.width=pct+'%'; } },80);
+    safeScrollTo(res);
+  }
+  function resetTest(screenId){
+    var screen=document.getElementById(screenId);
+    var fields=screen.querySelectorAll('.ans');
+    for(var i=0;i<fields.length;i++){ var f=fields[i]; clearMarks(f); if(f.tagName==='SELECT'){ f.selectedIndex=0; } else { f.value=''; } }
+    var carries=screen.querySelectorAll('.carry');
+    for(var j=0;j<carries.length;j++){ carries[j].value=''; }
+    var res=document.getElementById(screenId+'-result'); res.classList.remove('show'); res.innerHTML='';
+    safeScrollTop();
+  }
+
+  /* ===== Verdrahtung (Script steht am Ende, DOM ist fertig) ===== */
+  (function wireUp(){
+    var goBtns=document.querySelectorAll('[data-go]');
+    for(var i=0;i<goBtns.length;i++){ (function(b){ b.addEventListener('click', function(){ showScreen(b.getAttribute('data-go')); }); })(goBtns[i]); }
+    var checkBtns=document.querySelectorAll('[data-check]');
+    for(var j=0;j<checkBtns.length;j++){ (function(b){ b.addEventListener('click', function(){ evaluate(b.getAttribute('data-check')); }); })(checkBtns[j]); }
+    var modeBtns=document.querySelectorAll('[data-mode]');
+    for(var k=0;k<modeBtns.length;k++){ (function(b){ b.addEventListener('click', function(){
+      for(var m=0;m<modeBtns.length;m++){ modeBtns[m].classList.remove('active'); }
+      b.classList.add('active');
+      renderSach(b.getAttribute('data-mode'));
+    }); })(modeBtns[k]); }
+    renderSach('pick');
+  })();
+</script>
+</body>
+</html>
