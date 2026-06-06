@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZAPCOIN ⚡ — Mini Krypto Börse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070b16; --bg2:#0b1120;
+    --card:rgba(18,26,46,.72); --card2:rgba(24,34,58,.6);
+    --border:rgba(120,145,210,.16); --border-hi:rgba(120,145,210,.34);
+    --text:#e9edf8; --muted:#8a97b6;
+    --up:#22e58a; --down:#ff5470; --brand:#4dd0ff; --gold:#ffcf5c;
+    --shadow:0 18px 50px -20px rgba(0,0,0,.8);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Outfit",system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+  .bg-glow{position:fixed;inset:0;z-index:-2;overflow:hidden}
+  .bg-glow::before,.bg-glow::after{content:"";position:absolute;width:60vmax;height:60vmax;border-radius:50%;filter:blur(90px);opacity:.32}
+  .bg-glow::before{background:radial-gradient(circle,#1763ff,transparent 60%);top:-20vmax;left:-10vmax;animation:float1 18s ease-in-out infinite}
+  .bg-glow::after{background:radial-gradient(circle,#a83cff,transparent 60%);bottom:-25vmax;right:-12vmax;animation:float2 22s ease-in-out infinite}
+  @keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(8vmax,6vmax)}}
+  @keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(-7vmax,-5vmax)}}
+  .grid-overlay{position:fixed;inset:0;z-index:-1;background-image:linear-gradient(rgba(120,145,210,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(120,145,210,.05) 1px,transparent 1px);background-size:46px 46px;mask-image:radial-gradient(circle at 50% 30%,#000,transparent 85%)}
+
+  /* ---------- LOGIN ---------- */
+  .login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;z-index:30}
+  .login-card{width:100%;max-width:380px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:34px 28px;backdrop-filter:blur(16px);box-shadow:var(--shadow);text-align:center;animation:rise .5s cubic-bezier(.2,.7,.3,1)}
+  .login-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+  .login-logo .bolt{font-size:30px;filter:drop-shadow(0 0 12px var(--brand))}
+  .login-logo h1{font-family:"Chakra Petch";font-weight:700;font-size:30px;letter-spacing:3px;margin:0;background:linear-gradient(90deg,#fff,var(--brand));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .login-sub{color:var(--muted);font-size:15px;margin:4px 0 24px}
+  .login-input{width:100%;font-family:"Outfit";font-size:17px;font-weight:600;text-align:center;color:var(--text);background:var(--bg2);border:1.5px solid var(--border);border-radius:14px;padding:15px;outline:none;transition:.2s}
+  .login-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(77,208,255,.15)}
+  .login-input::placeholder{color:var(--muted)}
+  .login-btn{width:100%;margin-top:14px;font-family:"Outfit";font-weight:700;font-size:16px;padding:15px;border:none;border-radius:14px;cursor:pointer;background:linear-gradient(135deg,var(--brand),#2a8fff);color:#04111f;box-shadow:0 10px 24px -8px var(--brand);transition:.18s}
+  .login-btn:hover{transform:translateY(-2px);filter:brightness(1.07)}
+  .login-btn:active{transform:translateY(0)}
+  .login-hint{color:var(--muted);font-size:12px;margin:18px 0 0}
+
+  /* ---------- APP ---------- */
+  #app{display:none}
+  .wrap{max-width:960px;margin:0 auto;padding:18px 16px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo .bolt{font-size:26px;filter:drop-shadow(0 0 10px var(--brand))}
+  .logo h1{font-family:"Chakra Petch";font-weight:700;font-size:24px;letter-spacing:2px;margin:0;background:linear-gradient(90deg,#fff,var(--brand));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .head-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .acc-chip{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:7px 9px 7px 13px}
+  .acc-chip .who{color:var(--brand)}
+  .logout{font-family:"Outfit";font-weight:600;font-size:12px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:8px;padding:5px 10px;cursor:pointer;transition:.2s}
+  .logout:hover{color:var(--down);border-color:color-mix(in srgb,var(--down) 50%,transparent)}
+  .wallet{display:flex;flex-direction:column;align-items:flex-end;gap:2px;padding:9px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(255,207,92,.14),rgba(255,207,92,.04));border:1px solid rgba(255,207,92,.3)}
+  .wallet .lbl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);opacity:.8;font-weight:600}
+  .wallet .amt{font-family:"JetBrains Mono";font-weight:800;font-size:20px;color:var(--gold)}
+  .game-note{font-size:12px;color:var(--muted);margin:4px 0 18px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .live{display:flex;align-items:center;gap:6px;font-weight:600;letter-spacing:1px}
+  .live .dot{width:8px;height:8px;border-radius:50%;background:var(--up);box-shadow:0 0 8px var(--up);animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+  .tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:5px;margin-bottom:22px;width:fit-content}
+  .tab{font-family:"Outfit";font-weight:600;font-size:14px;color:var(--muted);background:none;border:none;cursor:pointer;padding:9px 20px;border-radius:10px;transition:.2s;display:flex;align-items:center;gap:7px}
+  .tab.active{background:linear-gradient(135deg,var(--brand),#2a8fff);color:#04111f;box-shadow:0 6px 18px -6px var(--brand)}
+  .tab:not(.active):hover{color:var(--text)}
+
+  .market{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  @media(max-width:640px){.market{grid-template-columns:1fr}}
+  .coin-card{position:relative;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px;backdrop-filter:blur(14px);box-shadow:var(--shadow);overflow:hidden;opacity:0;transform:translateY(16px);animation:rise .55s cubic-bezier(.2,.7,.3,1) forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .coin-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--coin);opacity:.9}
+  .coin-card::after{content:"";position:absolute;top:-40%;right:-30%;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,var(--coin),transparent 65%);opacity:.14;pointer-events:none}
+  .coin-card:hover{border-color:var(--border-hi);transform:translateY(-3px);transition:.25s}
+  .coin-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;position:relative}
+  .coin-id{display:flex;align-items:center;gap:11px}
+  .coin-avatar{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:color-mix(in srgb,var(--coin) 22%,transparent);border:1px solid color-mix(in srgb,var(--coin) 40%,transparent)}
+  .coin-names{display:flex;flex-direction:column;line-height:1.15}
+  .coin-name{font-weight:600;font-size:15px}
+  .coin-ticker{font-family:"JetBrains Mono";font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px}
+  .coin-change{font-family:"JetBrains Mono";font-weight:700;font-size:13px;padding:5px 9px;border-radius:9px}
+  .coin-change.up{color:var(--up);background:rgba(34,229,138,.12)}
+  .coin-change.down{color:var(--down);background:rgba(255,84,112,.12)}
+  .coin-price{font-family:"JetBrains Mono";font-weight:800;font-size:32px;letter-spacing:-.5px;transition:color .15s;position:relative}
+  .flash-up{animation:flashUp .6s ease}
+  .flash-down{animation:flashDown .6s ease}
+  @keyframes flashUp{0%{color:var(--up);text-shadow:0 0 16px var(--up)}100%{color:var(--text);text-shadow:none}}
+  @keyframes flashDown{0%{color:var(--down);text-shadow:0 0 16px var(--down)}100%{color:var(--text);text-shadow:none}}
+  .spark{width:100%;height:46px;margin:8px 0 14px;display:block}
+  .spark-line{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:stroke .3s}
+  .coin-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .btn{font-family:"Outfit";font-weight:700;font-size:14px;padding:12px;border-radius:12px;border:none;cursor:pointer;transition:.18s}
+  .btn:disabled{opacity:.35;cursor:not-allowed}
+  .btn.buy{background:linear-gradient(135deg,var(--up),#13b870);color:#03150d;box-shadow:0 8px 20px -8px var(--up)}
+  .btn.buy:not(:disabled):hover{transform:translateY(-2px);filter:brightness(1.08)}
+  .btn.buy:not(:disabled):active{transform:translateY(0)}
+  .btn.sell{background:transparent;color:var(--down);border:1.5px solid color-mix(in srgb,var(--down) 55%,transparent)}
+  .btn.sell:not(:disabled):hover{background:rgba(255,84,112,.12)}
+  .coin-held{font-size:12px;color:var(--muted);margin-top:11px;text-align:center}
+  .coin-held b{color:var(--text)}
+
+  .profile{display:none}
+  .profile.show{display:block;animation:rise .4s ease}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+  @media(max-width:640px){.stat-grid{grid-template-columns:1fr 1fr}}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;backdrop-filter:blur(12px)}
+  .stat .lbl{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:7px}
+  .stat .stat-num{font-family:"JetBrains Mono";font-weight:800;font-size:22px}
+  .stat.hero{grid-column:1/-1;background:linear-gradient(135deg,rgba(77,208,255,.14),rgba(77,208,255,.03));border-color:rgba(77,208,255,.3)}
+  .stat.hero .stat-num{font-size:30px}
+  .up{color:var(--up)} .down{color:var(--down)} .gold{color:var(--gold)} .brand{color:var(--brand)}
+  .section-h{font-family:"Chakra Petch";font-weight:600;font-size:15px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:24px 0 12px}
+  .holdings{display:flex;flex-direction:column;gap:10px}
+  .hold-row{display:flex;align-items:center;gap:13px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 15px;backdrop-filter:blur(12px)}
+  .hold-row .av{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:19px;flex-shrink:0;background:color-mix(in srgb,var(--coin) 22%,transparent);border:1px solid color-mix(in srgb,var(--coin) 40%,transparent)}
+  .hold-meta{flex:1;min-width:0}
+  .hold-meta .nm{font-weight:600;font-size:14px}
+  .hold-meta .sub{font-size:12px;color:var(--muted);font-family:"JetBrains Mono"}
+  .hold-right{text-align:right}
+  .hold-right .val{font-family:"JetBrains Mono";font-weight:700;font-size:15px}
+  .hold-right .pl{font-family:"JetBrains Mono";font-weight:700;font-size:12px;margin-top:2px}
+  .empty{text-align:center;color:var(--muted);padding:34px 16px;background:var(--card);border:1px dashed var(--border);border-radius:16px;font-size:14px}
+  .reset{margin-top:26px;background:none;border:1px solid var(--border);color:var(--muted);font-family:"Outfit";font-weight:600;font-size:13px;padding:10px 18px;border-radius:11px;cursor:pointer;transition:.2s}
+  .reset:hover{color:var(--down);border-color:color-mix(in srgb,var(--down) 50%,transparent)}
+
+  #toasts{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:9px;z-index:50;align-items:center}
+  .toast{font-weight:600;font-size:14px;padding:12px 20px;border-radius:13px;backdrop-filter:blur(14px);box-shadow:var(--shadow);animation:toastIn .3s cubic-bezier(.2,.8,.3,1);max-width:90vw}
+  .toast.good{background:rgba(34,229,138,.18);border:1px solid var(--up);color:#bdffe0}
+  .toast.bad{background:rgba(255,84,112,.18);border:1px solid var(--down);color:#ffc7d2}
+  .toast.hide{animation:toastOut .3s forwards}
+  @keyframes toastIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes toastOut{to{opacity:0;transform:translateY(14px)}}
+  footer{text-align:center;color:var(--muted);font-size:11px;margin-top:34px;opacity:.7}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="grid-overlay"></div>
+
+<!-- ===== LOGIN ===== -->
+<div class="login" id="login">
+  <div class="login-card">
+    <div class="login-logo"><span class="bolt">⚡</span><h1>ZAPCOIN</h1></div>
+    <p class="login-sub">Gib deinen Namen ein zum Starten</p>
+    <input id="login-name" class="login-input" placeholder="Dein Name…" autocomplete="off" maxlength="20">
+    <button class="login-btn" onclick="doLogin()">Einloggen →</button>
+    <p class="login-hint">Kein Passwort nötig · dein Konto wird gespeichert</p>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app">
+<div class="wrap">
+  <header>
+    <div class="logo"><span class="bolt">⚡</span><h1>ZAPCOIN</h1></div>
+    <div class="head-right">
+      <div class="acc-chip">👤 <span class="who" id="acc-name">—</span> <button class="logout" onclick="logout()">Abmelden</button></div>
+      <div class="wallet"><span class="lbl">Guthaben</span><span class="amt" id="wallet">€0,00</span></div>
+    </div>
+  </header>
+  <div class="game-note">🎮 Spielgeld • Kein echtes Geld &nbsp;<span class="live"><span class="dot"></span>LIVE</span></div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-markt" onclick="switchTab('markt')">📈 Markt</button>
+    <button class="tab" id="tab-profil" onclick="switchTab('profil')">👤 Profil</button>
+  </div>
+
+  <section class="market" id="market"></section>
+
+  <section class="profile" id="profile">
+    <div class="stat-grid">
+      <div class="stat hero">
+        <div class="lbl">Portfolio-Wert (was du jetzt bekommen würdest)</div>
+        <div class="stat-num brand" id="stat-value">€0,00</div>
+      </div>
+      <div class="stat"><div class="lbl">Bezahlt für deine Aktien</div><div class="stat-num" id="stat-paid">€0,00</div></div>
+      <div class="stat"><div class="lbl">Gewinn / Verlust</div><div class="stat-num" id="stat-pl">€0,00</div></div>
+      <div class="stat"><div class="lbl">Guthaben</div><div class="stat-num gold" id="stat-wallet">€0,00</div></div>
+      <div class="stat"><div class="lbl">Insgesamt investiert</div><div class="stat-num" id="stat-invested">€0,00</div></div>
+      <div class="stat"><div class="lbl">Insgesamt zurückbekommen</div><div class="stat-num" id="stat-received">€0,00</div></div>
+    </div>
+    <div class="section-h">Deine Aktien</div>
+    <div class="holdings" id="holdings"></div>
+    <button class="reset" onclick="resetAccount()">↺ Konto zurücksetzen</button>
+  </section>
+
+  <footer>ZAPCOIN ⚡ — Mini-Börse zum Spielen. Preise sind erfunden.</footer>
+</div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+/* ---------- config ---------- */
+var MIN = 0.20, MAX = 3.00;
+var UP = '#22e58a', DOWN = '#ff5470';
+
+var COINS = [
+  { id:'rblx', name:'Roblox',      ticker:'RBLX', emoji:'🎮', color:'#ff4757', price:2.50 }, // teuer (oben)
+  { id:'duo',  name:'Duolingo',    ticker:'DUO',  emoji:'🦉', color:'#58cc02', price:1.30 }, // mittel
+  { id:'braw', name:'Brawl Stars', ticker:'BRAW', emoji:'⭐', color:'#ffb800', price:1.10 }, // mittel
+  { id:'blk',  name:'Block',       ticker:'BLK',  emoji:'🧊', color:'#3b82f6', price:0.25 }  // billig (unten)
+];
+
+/* ============================================================
+   ADMIN — GUTHABEN PER CHAT.
+   Du sagst mir hier im Chat z.B. "gib omar 10 euro" oder
+   "setz max auf 1 euro", dann trage ich es hier ein.
+   type:'set' = genau auf den Betrag setzen
+   type:'add' = zum jetzigen Guthaben dazu addieren
+   id  = bei JEDER Änderung eine neue id geben (z.B. omar-2),
+         damit es beim nächsten Login wirkt.
+   ============================================================ */
+var ADMIN = {
+  'omar': { type:'set', amount:0.50, id:'omar-1' }
+};
+
+/* ---------- state (pro Konto) ---------- */
+var account = null;
+var wallet = 0;
+var holdings = {};
+var totalInvested = 0;
+var totalReceived = 0;
+var appliedDirective = null;
+var currentTab = 'markt';
+var tickerId = null;
+
+/* coin runtime state */
+COINS.forEach(function(c){ c.open=c.price; c.prev=c.price; c.pressure=0; c.history=[c.price]; });
+
+/* ---------- helpers ---------- */
+function eur(n){ return '€' + n.toFixed(2).replace('.', ','); }
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+function find(id){ for(var i=0;i<COINS.length;i++){ if(COINS[i].id===id) return COINS[i]; } }
+function accKey(name){ return 'zapcoin_acc_' + name.toLowerCase().trim(); }
+
+/* ---------- LOGIN ---------- */
+function doLogin(){
+  var inp = document.getElementById('login-name');
+  var name = inp.value.trim();
+  if(!name){ inp.focus(); return; }
+  loginAs(name);
+}
+function loginAs(name){
+  account = name;
+  document.getElementById('acc-name').textContent = name;
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  switchTab('markt');
+  loadAccount(name);     // lädt async, aktualisiert dann UI + Admin-Guthaben
+  startTicker();
+  try{ window.storage.set('zapcoin_last_user', name, false); }catch(e){}
+}
+function logout(){
+  saveAccount();
+  stopTicker();
+  account = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('login-name').focus();
+}
+
+/* ---------- ACCOUNT laden / speichern ---------- */
+function loadAccount(name){
+  wallet=0; holdings={}; totalInvested=0; totalReceived=0; appliedDirective=null;
+  function done(){ applyAdminAndRefresh(name); }
+  try{
+    window.storage.get(accKey(name)).then(function(r){
+      if(r && r.value){
+        var s = JSON.parse(r.value);
+        if(typeof s.balance==='number') wallet = s.balance;
+        if(s.holdings) holdings = s.holdings;
+        if(typeof s.totalInvested==='number') totalInvested = s.totalInvested;
+        if(typeof s.totalReceived==='number') totalReceived = s.totalReceived;
+        if(s.appliedDirective) appliedDirective = s.appliedDirective;
+      }
+      done();
+    }).catch(done);
+  }catch(e){ done(); }
+}
+function saveAccount(){
+  if(!account) return;
+  try{
+    window.storage.set(accKey(account), JSON.stringify({
+      balance:wallet, holdings:holdings, totalInvested:totalInvested,
+      totalReceived:totalReceived, appliedDirective:appliedDirective
+    }), false);
+  }catch(e){}
+}
+function applyAdmin(name){
+  var d = ADMIN[name.toLowerCase().trim()];
+  if(d && appliedDirective !== d.id){
+    if(d.type==='set') wallet = d.amount;
+    else if(d.type==='add') wallet = (wallet||0) + d.amount;
+    appliedDirective = d.id;
+    return d;
+  }
+  return null;
+}
+function applyAdminAndRefresh(name){
+  var d = applyAdmin(name);
+  saveAccount();
+  renderWallet();
+  COINS.forEach(updateCoin);
+  if(currentTab==='profil') renderProfile();
+  if(d){
+    if(d.type==='set') toast('💰 Dein Guthaben wurde auf '+eur(d.amount)+' gesetzt','good');
+    else toast('💰 Admin hat dir '+eur(d.amount)+' gegeben!','good');
+  }
+}
+
+/* ---------- build market ---------- */
+function buildMarket(){
+  var html='';
+  COINS.forEach(function(c,i){
+    html +=
+    '<article class="coin-card" id="card-'+c.id+'" style="--coin:'+c.color+';animation-delay:'+(i*0.08)+'s">'+
+      '<div class="coin-top">'+
+        '<div class="coin-id">'+
+          '<div class="coin-avatar">'+c.emoji+'</div>'+
+          '<div class="coin-names"><span class="coin-name">'+c.name+'</span><span class="coin-ticker">'+c.ticker+'</span></div>'+
+        '</div>'+
+        '<div class="coin-change up" id="chg-'+c.id+'">+0,00%</div>'+
+      '</div>'+
+      '<div class="coin-price" id="price-'+c.id+'">'+eur(c.price)+'</div>'+
+      '<svg class="spark" id="spark-'+c.id+'" viewBox="0 0 120 46" preserveAspectRatio="none">'+
+        '<path class="spark-fill" id="sparkfill-'+c.id+'"></path>'+
+        '<path class="spark-line" id="sparkline-'+c.id+'"></path>'+
+      '</svg>'+
+      '<div class="coin-actions">'+
+        '<button class="btn buy" id="buy-'+c.id+'" onclick="buy(\''+c.id+'\')">Investieren</button>'+
+        '<button class="btn sell" id="sell-'+c.id+'" onclick="sell(\''+c.id+'\')">Verkaufen</button>'+
+      '</div>'+
+      '<div class="coin-held" id="held-'+c.id+'">Du besitzt 0 Anteile</div>'+
+    '</article>';
+  });
+  document.getElementById('market').innerHTML = html;
+}
+
+/* ---------- sparkline ---------- */
+function sparkPath(hist, fill){
+  var W=120,H=46,pad=5;
+  if(hist.length<2){ var y=H/2; return fill ? 'M0,'+y+' L'+W+','+y+' L'+W+','+H+' L0,'+H+' Z' : 'M0,'+y+' L'+W+','+y; }
+  var min=Math.min.apply(null,hist), max=Math.max.apply(null,hist), range=(max-min)||1, d='';
+  for(var i=0;i<hist.length;i++){
+    var x=(i/(hist.length-1))*W, yy=H-pad-((hist[i]-min)/range)*(H-pad*2);
+    d += (i===0?'M':'L')+x.toFixed(1)+','+yy.toFixed(1)+' ';
+  }
+  if(fill) d += 'L'+W+','+H+' L0,'+H+' Z';
+  return d.trim();
+}
+
+/* ---------- update one coin ---------- */
+function updateCoin(c){
+  var priceEl = document.getElementById('price-'+c.id);
+  if(!priceEl) return;
+  priceEl.textContent = eur(c.price);
+  if(c.prev != null && c.price !== c.prev){
+    var cls = c.price > c.prev ? 'flash-up' : 'flash-down';
+    priceEl.classList.remove('flash-up','flash-down'); void priceEl.offsetWidth; priceEl.classList.add(cls);
+  }
+  var pct = ((c.price - c.open)/c.open)*100;
+  var chg = document.getElementById('chg-'+c.id);
+  chg.textContent = (pct>=0?'+':'') + pct.toFixed(2).replace('.',',') + '%';
+  chg.className = 'coin-change ' + (pct>=0?'up':'down');
+
+  var trendUp = c.history.length>1 ? c.history[c.history.length-1] >= c.history[0] : true;
+  var col = trendUp ? UP : DOWN;
+  var line=document.getElementById('sparkline-'+c.id), fillEl=document.getElementById('sparkfill-'+c.id);
+  line.setAttribute('d', sparkPath(c.history,false)); line.setAttribute('stroke', col);
+  fillEl.setAttribute('d', sparkPath(c.history,true)); fillEl.setAttribute('fill', col+'22');
+
+  var h = holdings[c.id], held = document.getElementById('held-'+c.id);
+  if(h && h.units>0) held.innerHTML = 'Du besitzt <b>'+h.units+'</b> Anteil'+(h.units>1?'e':'')+' · bezahlt '+eur(h.paid);
+  else held.textContent = 'Du besitzt 0 Anteile';
+
+  document.getElementById('buy-'+c.id).disabled = wallet < c.price;
+  document.getElementById('sell-'+c.id).disabled = !h || h.units<1;
+}
+
+/* ---------- tick (sanfter Fall beim Kaufen) ---------- */
+function tick(){
+  COINS.forEach(function(c){
+    var drift = -c.pressure;                  // Kaufen -> leicht nach unten
+    var edge = 0;
+    if(c.price > 2.65) edge = -0.02;
+    if(c.price < 0.30) edge = 0.02;
+    var noise = (Math.random()-0.5)*0.06;     // ±3% Zufall
+    c.prev = c.price;
+    c.price = clamp(c.price*(1 + drift + noise + edge), MIN, MAX);
+    c.pressure *= 0.85;                        // baut sich ab
+    if(c.pressure < 0.002) c.pressure = 0;
+    c.history.push(c.price);
+    if(c.history.length > 40) c.history.shift();
+    updateCoin(c);
+  });
+  if(currentTab==='profil') renderProfile();
+}
+
+/* ---------- buy / sell ---------- */
+function buy(id){
+  var c = find(id);
+  if(wallet < c.price){ toast('Nicht genug Guthaben! 💸','bad'); return; }
+  wallet -= c.price;
+  var h = holdings[id] || { units:0, paid:0 };
+  h.units += 1; h.paid += c.price; holdings[id] = h;
+  totalInvested += c.price;
+  c.pressure = Math.min(c.pressure + 0.03, 0.12);   // SANFTER runter (nicht so fett)
+  toast('Gekauft: '+c.name+' für '+eur(c.price),'good');
+  updateCoin(c); renderWallet(); if(currentTab==='profil') renderProfile();
+  saveAccount();
+}
+function sell(id){
+  var c = find(id), h = holdings[id];
+  if(!h || h.units<1){ toast('Du hast keine Anteile! 🤷','bad'); return; }
+  wallet += c.price;
+  var avg = h.paid/h.units; h.units -= 1; h.paid -= avg;
+  if(h.units<=0){ h.units=0; h.paid=0; }
+  totalReceived += c.price;
+  toast('Verkauft: '+c.name+' für '+eur(c.price),'good');
+  updateCoin(c); renderWallet(); if(currentTab==='profil') renderProfile();
+  saveAccount();
+}
+
+/* ---------- render ---------- */
+function renderWallet(){
+  document.getElementById('wallet').textContent = eur(wallet);
+  document.getElementById('stat-wallet').textContent = eur(wallet);
+}
+function renderProfile(){
+  var costBasis=0, curValue=0, html='';
+  COINS.forEach(function(c){
+    var h=holdings[c.id];
+    if(h && h.units>0){
+      var val=h.units*c.price, pl=val-h.paid, avg=h.paid/h.units;
+      costBasis+=h.paid; curValue+=val;
+      html +=
+      '<div class="hold-row" style="--coin:'+c.color+'">'+
+        '<div class="av">'+c.emoji+'</div>'+
+        '<div class="hold-meta"><div class="nm">'+c.name+'</div>'+
+          '<div class="sub">'+h.units+'× · Ø '+eur(avg)+' · bezahlt '+eur(h.paid)+'</div></div>'+
+        '<div class="hold-right"><div class="val">'+eur(val)+'</div>'+
+          '<div class="pl '+(pl>=0?'up':'down')+'">'+(pl>=0?'+':'−')+eur(Math.abs(pl))+'</div></div>'+
+      '</div>';
+    }
+  });
+  var pl = curValue - costBasis;
+  document.getElementById('stat-value').textContent = eur(curValue);
+  document.getElementById('stat-paid').textContent = eur(costBasis);
+  document.getElementById('stat-invested').textContent = eur(totalInvested);
+  document.getElementById('stat-received').textContent = eur(totalReceived);
+  var plEl = document.getElementById('stat-pl');
+  plEl.textContent = (pl>=0?'+':'−') + eur(Math.abs(pl));
+  plEl.className = 'stat-num ' + (pl>=0?'up':'down');
+  document.getElementById('holdings').innerHTML = html || '<div class="empty">Du hast noch keine Aktien gekauft.<br>Geh zum <b>Markt</b> und investiere! 📈</div>';
+}
+
+/* ---------- tabs ---------- */
+function switchTab(t){
+  currentTab = t;
+  document.getElementById('tab-markt').classList.toggle('active', t==='markt');
+  document.getElementById('tab-profil').classList.toggle('active', t==='profil');
+  document.getElementById('market').style.display = t==='markt' ? 'grid' : 'none';
+  document.getElementById('profile').classList.toggle('show', t==='profil');
+  if(t==='profil') renderProfile();
+}
+
+/* ---------- toast ---------- */
+function toast(msg,type){
+  var t=document.createElement('div'); t.className='toast '+type; t.textContent=msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(function(){ t.classList.add('hide'); setTimeout(function(){ t.remove(); },300); }, 1700);
+}
+
+/* ---------- reset current account ---------- */
+function resetAccount(){
+  if(!confirm('Konto "'+account+'" zurücksetzen? Guthaben & Aktien werden auf 0 gesetzt.')) return;
+  wallet=0; holdings={}; totalInvested=0; totalReceived=0;
+  COINS.forEach(function(c){ updateCoin(c); });
+  renderWallet(); renderProfile(); saveAccount();
+  toast('Konto zurückgesetzt ↺','good');
+}
+
+/* ---------- ticker ---------- */
+function startTicker(){ if(!tickerId) tickerId=setInterval(tick,1500); }
+function stopTicker(){ if(tickerId){ clearInterval(tickerId); tickerId=null; } }
+
+/* ---------- init ---------- */
+buildMarket();
+COINS.forEach(updateCoin);
+document.getElementById('login-name').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+try{ window.storage.get('zapcoin_last_user').then(function(r){ if(r&&r.value) document.getElementById('login-name').value=r.value; }).catch(function(){}); }catch(e){}
+document.getElementById('login-name').focus();
+</script>
+</body>
+</html>
