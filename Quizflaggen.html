@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Flaggen Quiz</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:linear-gradient(135deg,#1e3c72,#2a5298);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.card{
+    background:white;
+    width:700px;
+    max-width:95%;
+    padding:30px;
+    border-radius:25px;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(0,0,0,.3);
+}
+
+h1{
+    margin-top:0;
+    color:#222;
+}
+
+img{
+    width:380px;
+    max-width:90%;
+    border-radius:15px;
+    border:2px solid #ddd;
+    margin:20px 0;
+}
+
+.answers{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+button{
+    padding:15px;
+    font-size:20px;
+    border:none;
+    border-radius:15px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+button:hover{
+    transform:scale(1.03);
+}
+
+.next{
+    margin-top:25px;
+    background:#222;
+    color:white;
+}
+
+#result{
+    font-size:24px;
+    font-weight:bold;
+    margin:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h1>🌍 Flaggen-Quiz</h1>
+
+<img id="flag">
+
+<div class="answers" id="answers"></div>
+
+<div id="result"></div>
+
+<button class="next" onclick="nextQuestion()">
+➡️ Weiter
+</button>
+
+</div>
+
+<script>
+
+const countries=[
+["Dänemark","https://flagcdn.com/w640/dk.png"],
+["Polen","https://flagcdn.com/w640/pl.png"],
+["Tschechien","https://flagcdn.com/w640/cz.png"],
+["Österreich","https://flagcdn.com/w640/at.png"],
+["Schweiz","https://flagcdn.com/w640/ch.png"],
+["Frankreich","https://flagcdn.com/w640/fr.png"],
+["Luxemburg","https://flagcdn.com/w640/lu.png"],
+["Belgien","https://flagcdn.com/w640/be.png"],
+["Niederlande","https://flagcdn.com/w640/nl.png"]
+];
+
+let correct="";
+let answered=false;
+
+function shuffle(a){
+    return [...a].sort(()=>Math.random()-0.5);
+}
+
+function nextQuestion(){
+
+answered=false;
+document.getElementById("result").innerHTML="";
+
+let c=countries[Math.floor(Math.random()*countries.length)];
+correct=c[0];
+
+document.getElementById("flag").src=c[1];
+
+let options=shuffle(countries.map(x=>x[0]))
+.slice(0,4);
+
+if(!options.includes(correct)){
+options[Math.floor(Math.random()*4)]=correct;
+}
+
+options=shuffle(options);
+
+let html="";
+
+options.forEach(name=>{
+html+=`
+<button onclick="choose(this,'${name}')">${name}</button>
+`;
+});
+
+document.getElementById("answers").innerHTML=html;
+
+}
+
+function choose(btn,name){
+
+if(answered) return;
+
+answered=true;
+
+let buttons=document.querySelectorAll(".answers button");
+
+buttons.forEach(b=>{
+
+if(b.innerText===correct){
+b.style.background="#37d67a";
+b.style.color="white";
+}
+
+if(b.innerText===name && name!==correct){
+b.style.background="#ff4d4d";
+b.style.color="white";
+}
+
+});
+
+if(name===correct){
+document.getElementById("result").innerHTML="✅ Richtig!";
+}else{
+document.getElementById("result").innerHTML="❌ Falsch! Richtige Antwort: "+correct;
+}
+
+}
+
+nextQuestion();
+
+</script>
+
+</body>
+</html>
