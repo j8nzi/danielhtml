@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ГОЛОС — Russisch Text-zu-Sprache</title>
+<script src="https://js.puter.com/v2/"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#E4DFD4;
+    --card:#F0ECE3;
+    --field:#F8F5EF;
+    --ink:#16130F;
+    --red:#D8232A;
+    --red-deep:#AD1A1F;
+    --smoke:#847D6F;
+    --line:rgba(22,19,15,.14);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'PT Sans', system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:660px; margin:0 auto; padding:64px 22px 72px; }
+
+  /* ---- Masthead ---- */
+  .eyebrow{
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.22em;
+    font-size:12px;
+    font-weight:500;
+    color:var(--smoke);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{ content:""; width:9px; height:9px; background:var(--red); display:inline-block; }
+
+  .hero{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    text-transform:uppercase;
+    font-size:clamp(54px, 14vw, 96px);
+    line-height:.9;
+    letter-spacing:.015em;
+    margin:12px 0 0;
+  }
+
+  .rule{ height:4px; width:66px; background:var(--red); margin-top:18px; transform-origin:left; }
+
+  .lede{ font-size:15px; color:var(--smoke); margin:16px 0 0; max-width:44ch; line-height:1.55; }
+
+  /* ---- Console card ---- */
+  .card{
+    background:var(--card);
+    border:1.5px solid var(--ink);
+    padding:clamp(20px,5vw,30px);
+    margin-top:32px;
+    box-shadow:0 16px 34px -26px rgba(22,19,15,.6);
+  }
+
+  .field{
+    width:100%;
+    min-height:188px;
+    resize:vertical;
+    padding:20px;
+    border:1.5px solid var(--line);
+    background:var(--field);
+    color:var(--ink);
+    font-family:'PT Sans', sans-serif;
+    font-size:19px;
+    line-height:1.6;
+  }
+  .field::placeholder{ color:#A8A092; }
+  .field:focus{ outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(216,35,42,.13); }
+
+  .meta{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    margin-top:14px;
+    flex-wrap:wrap;
+  }
+  .counter{
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    font-size:12px;
+    color:var(--smoke);
+  }
+
+  /* ---- Voice toggle ---- */
+  .voice{ display:inline-flex; border:1.5px solid var(--ink); }
+  .seg{ position:relative; }
+  .seg + .seg{ border-left:1.5px solid var(--ink); }
+  .seg input{ position:absolute; inset:0; opacity:0; margin:0; cursor:pointer; }
+  .seg span{
+    display:flex;
+    align-items:baseline;
+    gap:7px;
+    padding:9px 15px;
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    font-weight:600;
+    letter-spacing:.04em;
+    font-size:13px;
+    color:var(--ink);
+  }
+  .seg span i{ font-style:normal; font-weight:400; font-size:10px; letter-spacing:.08em; color:var(--smoke); }
+  .seg input:checked + span{ background:var(--ink); color:var(--card); }
+  .seg input:checked + span i{ color:rgba(255,255,255,.62); }
+  .seg input:focus-visible + span{ outline:2px solid var(--red); outline-offset:2px; }
+
+  /* ---- Signature: equalizer band ---- */
+  .eq{ display:flex; align-items:flex-end; gap:4px; height:60px; margin-top:26px; padding:0 2px; }
+  .eq span{
+    flex:1 1 0;
+    min-width:0;
+    height:var(--h,8px);
+    background:var(--red);
+    transform-origin:bottom;
+    transition:height .25s ease;
+  }
+  .eq.on span{ animation:eqb var(--d,900ms) ease-in-out infinite; animation-delay:calc(var(--i) * -40ms); }
+  @keyframes eqb{ 0%,100%{ height:10%; } 50%{ height:100%; } }
+
+  /* ---- Actions ---- */
+  .actions{ display:flex; gap:12px; margin-top:22px; }
+  .btn{
+    flex:1;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    padding:16px 18px;
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    font-weight:600;
+    letter-spacing:.06em;
+    font-size:15px;
+    border:1.5px solid var(--ink);
+    background:transparent;
+    color:var(--ink);
+    cursor:pointer;
+    transition:background .15s, color .15s, transform .05s, opacity .15s;
+  }
+  .btn .glyph{ font-size:16px; line-height:1; }
+  .btn-primary{ background:var(--red); border-color:var(--red); color:#FBF7EF; }
+  .btn-primary:hover{ background:var(--red-deep); border-color:var(--red-deep); }
+  .btn-ghost:hover{ background:var(--ink); color:var(--card); }
+  .btn:active{ transform:translateY(1px); }
+  .btn:disabled{ opacity:.38; cursor:not-allowed; }
+  .btn:focus-visible{ outline:2px solid var(--ink); outline-offset:3px; }
+  .btn-primary:focus-visible{ outline-color:var(--red-deep); }
+
+  .status{
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    font-size:12px;
+    color:var(--smoke);
+    margin-top:16px;
+    min-height:1em;
+  }
+  .status[data-kind="error"]{ color:var(--red-deep); }
+
+  .note{ font-size:12px; color:var(--smoke); margin-top:22px; line-height:1.5; }
+
+  /* ---- Load reveal ---- */
+  @keyframes rise{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
+  @keyframes wipe{ from{ transform:scaleX(0); } to{ transform:scaleX(1); } }
+  .reveal{ animation:rise .6s cubic-bezier(.2,.7,.2,1) both; }
+  .d1{ animation-delay:.05s; } .d2{ animation-delay:.12s; } .d3{ animation-delay:.2s; } .d4{ animation-delay:.28s; }
+  .rule{ animation:wipe .5s ease .34s both; }
+
+  @media (prefers-reduced-motion:reduce){
+    .reveal,.rule{ animation:none !important; opacity:1 !important; transform:none !important; }
+    .eq.on span{ animation:none !important; }
+  }
+
+  @media (max-width:480px){
+    .actions{ flex-direction:column; }
+    .voice{ width:100%; }
+    .seg{ flex:1; }
+    .seg span{ justify-content:center; }
+  }
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <p class="eyebrow reveal d1">Russisch · Text-zu-Sprache</p>
+    <h1 class="hero reveal d2">ГОЛОС</h1>
+    <div class="rule"></div>
+    <p class="lede reveal d3">Text eingeben, anhören und als MP3 herunterladen.</p>
+
+    <section class="card reveal d4" aria-label="Sprachausgabe">
+      <textarea id="text" class="field" lang="ru" maxlength="3000"
+        placeholder="Введите текст на русском языке…" autocomplete="off"></textarea>
+
+      <div class="meta">
+        <span id="counter" class="counter">0 / 3000</span>
+        <div class="voice" role="radiogroup" aria-label="Stimme">
+          <label class="seg">
+            <input type="radio" name="voice" value="Tatyana" checked>
+            <span>Татьяна <i>Frau</i></span>
+          </label>
+          <label class="seg">
+            <input type="radio" name="voice" value="Maxim">
+            <span>Максим <i>Mann</i></span>
+          </label>
+        </div>
+      </div>
+
+      <div id="eq" class="eq" aria-hidden="true"></div>
+
+      <div class="actions">
+        <button id="play" class="btn btn-primary" type="button">
+          <span class="glyph" aria-hidden="true">►</span>
+          <span class="label">Anhören</span>
+        </button>
+        <button id="download" class="btn btn-ghost" type="button" disabled>
+          <span class="glyph" aria-hidden="true">↓</span>
+          <span class="label">Als MP3 speichern</span>
+        </button>
+      </div>
+
+      <p id="status" class="status" role="status" aria-live="polite">Bereit.</p>
+    </section>
+
+    <p class="note">Die Stimme wird über einen kostenlosen Dienst erzeugt — kein Konto und kein Schlüssel nötig. Dafür wird Internet benötigt; klappt das einmal nicht, nutzt „Anhören“ automatisch die russische Stimme deines Browsers.</p>
+  </main>
+
+<script>
+  const textarea = document.getElementById('text');
+  const counter  = document.getElementById('counter');
+  const playBtn  = document.getElementById('play');
+  const dlBtn    = document.getElementById('download');
+  const statusEl = document.getElementById('status');
+  const eqEl     = document.getElementById('eq');
+
+  const MAX = 3000;
+  let voice = 'Tatyana';
+  let busy = false;
+  let usingSS = false;
+  let currentEl = null;
+  let cache = { key:'', el:null, blob:null };
+
+  /* ---- Equalizer bars ---- */
+  const BARS = 28;
+  for (let i = 0; i < BARS; i++){
+    const s = document.createElement('span');
+    s.style.setProperty('--i', i);
+    s.style.setProperty('--d', (700 + Math.round(Math.random()*520)) + 'ms');
+    s.style.setProperty('--h', (6 + Math.round(Math.random()*18)) + 'px');
+    eqEl.appendChild(s);
+  }
+
+  const hasPuter = () => typeof puter !== 'undefined' && puter.ai && typeof puter.ai.txt2speech === 'function';
+
+  function setStatus(msg, kind){
+    statusEl.textContent = msg;
+    if (kind) statusEl.setAttribute('data-kind', kind);
+    else statusEl.removeAttribute('data-kind');
+  }
+  function invalidate(){ cache = { key:'', el:null, blob:null }; }
+  function dlLabel(t){ dlBtn.querySelector('.label').textContent = t; }
+
+  function setPlayState(state){
+    const glyph = playBtn.querySelector('.glyph');
+    const label = playBtn.querySelector('.label');
+    if (state === 'loading'){ label.textContent = 'Lädt …'; return; }
+    if (state === 'playing'){ glyph.textContent = '■'; label.textContent = 'Stopp'; return; }
+    glyph.textContent = '►'; label.textContent = 'Anhören';
+  }
+
+  function isPlaying(){
+    if (usingSS) return ('speechSynthesis' in window) && (speechSynthesis.speaking || speechSynthesis.pending);
+    return currentEl && !currentEl.paused && !currentEl.ended;
+  }
+  function stopAll(){
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    if (currentEl){ try { currentEl.pause(); currentEl.currentTime = 0; } catch(_){} }
+    usingSS = false;
+    eqEl.classList.remove('on');
+    setPlayState('idle');
+    updateButtons();
+  }
+
+  function updateButtons(){
+    const empty = textarea.value.trim().length === 0;
+    dlBtn.disabled = empty || busy;
+    playBtn.disabled = busy ? !isPlaying() : (empty && !isPlaying());
+  }
+
+  function wireAudio(el){
+    el.addEventListener('play',  () => { eqEl.classList.add('on'); setPlayState('playing'); setStatus('Wird abgespielt.'); });
+    el.addEventListener('pause', () => { eqEl.classList.remove('on'); setPlayState('idle'); updateButtons(); });
+    el.addEventListener('ended', () => { eqEl.classList.remove('on'); setPlayState('idle'); setStatus('Fertig.'); updateButtons(); });
+  }
+
+  async function elToBlob(el){
+    const r = await fetch(el.src);
+    return await r.blob();
+  }
+
+  async function synth(text, needBlob){
+    const key = voice + '::' + text;
+    if (cache.key === key && cache.el){
+      if (needBlob && !cache.blob) cache.blob = await elToBlob(cache.el);
+      return cache;
+    }
+    const el = await puter.ai.txt2speech(text, { voice: voice, engine: 'standard', language: 'ru-RU' });
+    wireAudio(el);
+    let blob = null;
+    if (needBlob) blob = await elToBlob(el);
+    cache = { key, el, blob };
+    return cache;
+  }
+
+  function startWebSpeech(text){
+    usingSS = true;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ru-RU';
+    const ru = speechSynthesis.getVoices().find(v => /^ru/i.test(v.lang));
+    if (ru) u.voice = ru;
+    u.onend   = () => { eqEl.classList.remove('on'); setPlayState('idle'); setStatus('Fertig.'); usingSS = false; updateButtons(); };
+    u.onerror = () => { eqEl.classList.remove('on'); setPlayState('idle'); usingSS = false; updateButtons(); };
+    eqEl.classList.add('on');
+    setPlayState('playing');
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  }
+
+  /* ---- Events ---- */
+  textarea.addEventListener('input', () => {
+    counter.textContent = textarea.value.length + ' / ' + MAX;
+    invalidate();
+    updateButtons();
+  });
+
+  document.querySelectorAll('input[name="voice"]').forEach(r => {
+    r.addEventListener('change', () => { voice = r.value; invalidate(); });
+  });
+
+  playBtn.addEventListener('click', async () => {
+    if (isPlaying()){ stopAll(); return; }
+    const text = textarea.value.trim();
+    if (!text){ setStatus('Gib zuerst Text ein.'); return; }
+
+    busy = true; updateButtons(); setPlayState('loading'); setStatus('Sprache wird erzeugt …');
+    try {
+      if (!hasPuter()) throw new Error('no-puter');
+      const c = await synth(text, false);
+      currentEl = c.el; usingSS = false;
+      await currentEl.play();
+    } catch (e) {
+      if ('speechSynthesis' in window){
+        try { startWebSpeech(text); setStatus('Wird abgespielt (Browser-Stimme).'); }
+        catch (e2){ setStatus('Sprachausgabe nicht verfügbar. Prüfe deine Internetverbindung.', 'error'); eqEl.classList.remove('on'); setPlayState('idle'); }
+      } else {
+        setStatus('Sprachausgabe nicht verfügbar. Prüfe deine Internetverbindung.', 'error');
+        setPlayState('idle');
+      }
+    } finally {
+      busy = false; updateButtons();
+    }
+  });
+
+  dlBtn.addEventListener('click', async () => {
+    const text = textarea.value.trim();
+    if (!text){ setStatus('Gib zuerst Text ein.'); return; }
+    if (!hasPuter()){ setStatus('Der Download braucht den Online-Dienst. Prüfe deine Internetverbindung und versuch es erneut.', 'error'); return; }
+
+    busy = true; updateButtons(); dlLabel('Erzeuge …');
+    try {
+      const c = await synth(text, true);
+      if (!c.blob) throw new Error('no-blob');
+      const url = URL.createObjectURL(c.blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'golos.mp3';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      setStatus('MP3 gespeichert.');
+    } catch (e) {
+      setStatus('Download fehlgeschlagen. Versuch es erneut oder prüfe deine Internetverbindung.', 'error');
+    } finally {
+      busy = false; dlLabel('Als MP3 speichern'); updateButtons();
+    }
+  });
+
+  if ('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices(); }
+
+  updateButtons();
+</script>
+</body>
+</html>
