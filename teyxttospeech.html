@@ -70,7 +70,7 @@
 
   .field{
     width:100%;
-    min-height:188px;
+    min-height:200px;
     resize:vertical;
     padding:20px;
     border:1.5px solid var(--line);
@@ -204,11 +204,11 @@
     <p class="lede reveal d3">Text eingeben, anhören und als MP3 herunterladen.</p>
 
     <section class="card reveal d4" aria-label="Sprachausgabe">
-      <textarea id="text" class="field" lang="ru" maxlength="3000"
+      <textarea id="text" class="field" lang="ru" maxlength="15000"
         placeholder="Введите текст на русском языке…" autocomplete="off"></textarea>
 
       <div class="meta">
-        <span id="counter" class="counter">0 / 3000</span>
+        <span id="counter" class="counter">0 / 15000</span>
         <div class="voice" role="radiogroup" aria-label="Stimme">
           <label class="seg">
             <input type="radio" name="voice" value="Tatyana" checked>
@@ -237,7 +237,7 @@
       <p id="status" class="status" role="status" aria-live="polite">Bereit.</p>
     </section>
 
-    <p class="note">Die Stimme wird über einen kostenlosen Dienst erzeugt — kein Konto und kein Schlüssel nötig. Dafür wird Internet benötigt; klappt das einmal nicht, nutzt „Anhören“ automatisch die russische Stimme deines Browsers.</p>
+    <p class="note">Natürliche russische Stimmen über einen kostenlosen Dienst — kein Konto, kein Schlüssel. Längere Texte werden automatisch in Teilen verarbeitet, das kann einen Moment dauern. Ohne Internet nutzt „Anhören“ die russische Stimme deines Browsers.</p>
   </main>
 
 <script>
@@ -248,12 +248,20 @@
   const statusEl = document.getElementById('status');
   const eqEl     = document.getElementById('eq');
 
-  const MAX = 3000;
+  const MAX = 15000;
+  const CHUNK_LIMIT = 2500;   // per request to the voice service
+  const SS_LIMIT = 300;       // per utterance for the browser fallback
+
+  // Clean, natural voices. Names are just labels; they map to high-quality engine voices.
+  const VOICES = { Tatyana: 'nova', Maxim: 'onyx' };
+  const INSTRUCTIONS = 'Read the text as a native Russian speaker. Pronunciation must be clear, natural and clean, with calm, confident, neutral delivery.';
+
   let voice = 'Tatyana';
   let busy = false;
   let usingSS = false;
   let currentEl = null;
-  let cache = { key:'', el:null, blob:null };
+  let currentUrl = null;
+  let cache = { key:'', blob:null };
 
   /* ---- Equalizer bars ---- */
   const BARS = 28;
@@ -266,13 +274,14 @@
   }
 
   const hasPuter = () => typeof puter !== 'undefined' && puter.ai && typeof puter.ai.txt2speech === 'function';
+  const voiceId = () => VOICES[voice] || 'onyx';
 
   function setStatus(msg, kind){
     statusEl.textContent = msg;
     if (kind) statusEl.setAttribute('data-kind', kind);
     else statusEl.removeAttribute('data-kind');
   }
-  function invalidate(){ cache = { key:'', el:null, blob:null }; }
+  function invalidate(){ cache = { key:'', blob:null }; }
   function dlLabel(t){ dlBtn.querySelector('.label').textContent = t; }
 
   function setPlayState(state){
@@ -302,43 +311,94 @@
     playBtn.disabled = busy ? !isPlaying() : (empty && !isPlaying());
   }
 
+  /* ---- Split text so every request stays within limits ---- */
+  function chunkText(t, limit){
+    t = t.trim().replace(/\s+/g, ' ');
+    if (t.length <= limit) return [t];
+    const sentences = t.match(/[^.!?…]+[.!?…]*\s*/g) || [t];
+    const parts = [];
+    let buf = '';
+    for (const s of sentences){
+      if ((buf + s).length > limit){
+        if (buf){ parts.push(buf.trim()); buf = ''; }
+        if (s.length > limit){
+          let wb = '';
+          for (const w of s.split(' ')){
+            if (w.length > limit){
+              if (wb){ parts.push(wb.trim()); wb = ''; }
+              for (let i = 0; i < w.length; i += limit) parts.push(w.slice(i, i + limit));
+            } else if ((wb + ' ' + w).trim().length > limit){
+              if (wb) parts.push(wb.trim());
+              wb = w;
+            } else {
+              wb = (wb + ' ' + w).trim();
+            }
+          }
+          buf = wb;
+        } else {
+          buf = s;
+        }
+      } else {
+        buf += s;
+      }
+    }
+    if (buf.trim()) parts.push(buf.trim());
+    return parts;
+  }
+
+  async function synthChunkBlob(t){
+    const el = await puter.ai.txt2speech(t, {
+      provider: 'openai',
+      model: 'gpt-4o-mini-tts',
+      voice: voiceId(),
+      response_format: 'mp3',
+      instructions: INSTRUCTIONS
+    });
+    const r = await fetch(el.src);
+    return await r.blob();
+  }
+
+  async function getBlob(){
+    const text = textarea.value.trim();
+    const key = voiceId() + '::' + text;
+    if (cache.key === key && cache.blob) return cache.blob;
+
+    const chunks = chunkText(text, CHUNK_LIMIT);
+    const blobs = [];
+    for (let i = 0; i < chunks.length; i++){
+      setStatus(chunks.length > 1 ? ('Sprache wird erzeugt … Teil ' + (i + 1) + '/' + chunks.length) : 'Sprache wird erzeugt …');
+      blobs.push(await synthChunkBlob(chunks[i]));
+    }
+    const blob = new Blob(blobs, { type: 'audio/mpeg' });
+    cache = { key, blob };
+    return blob;
+  }
+
   function wireAudio(el){
     el.addEventListener('play',  () => { eqEl.classList.add('on'); setPlayState('playing'); setStatus('Wird abgespielt.'); });
     el.addEventListener('pause', () => { eqEl.classList.remove('on'); setPlayState('idle'); updateButtons(); });
     el.addEventListener('ended', () => { eqEl.classList.remove('on'); setPlayState('idle'); setStatus('Fertig.'); updateButtons(); });
   }
 
-  async function elToBlob(el){
-    const r = await fetch(el.src);
-    return await r.blob();
-  }
-
-  async function synth(text, needBlob){
-    const key = voice + '::' + text;
-    if (cache.key === key && cache.el){
-      if (needBlob && !cache.blob) cache.blob = await elToBlob(cache.el);
-      return cache;
-    }
-    const el = await puter.ai.txt2speech(text, { voice: voice, engine: 'standard', language: 'ru-RU' });
-    wireAudio(el);
-    let blob = null;
-    if (needBlob) blob = await elToBlob(el);
-    cache = { key, el, blob };
-    return cache;
-  }
-
   function startWebSpeech(text){
     usingSS = true;
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ru-RU';
+    const chunks = chunkText(text, SS_LIMIT);
     const ru = speechSynthesis.getVoices().find(v => /^ru/i.test(v.lang));
-    if (ru) u.voice = ru;
-    u.onend   = () => { eqEl.classList.remove('on'); setPlayState('idle'); setStatus('Fertig.'); usingSS = false; updateButtons(); };
-    u.onerror = () => { eqEl.classList.remove('on'); setPlayState('idle'); usingSS = false; updateButtons(); };
+    let idx = 0;
     eqEl.classList.add('on');
     setPlayState('playing');
+    function next(){
+      if (!usingSS) return;
+      if (idx >= chunks.length){ eqEl.classList.remove('on'); setPlayState('idle'); setStatus('Fertig.'); usingSS = false; updateButtons(); return; }
+      const u = new SpeechSynthesisUtterance(chunks[idx++]);
+      u.lang = 'ru-RU';
+      if (ru) u.voice = ru;
+      u.onend = next;
+      u.onerror = () => { eqEl.classList.remove('on'); setPlayState('idle'); usingSS = false; updateButtons(); };
+      speechSynthesis.speak(u);
+    }
     speechSynthesis.cancel();
-    speechSynthesis.speak(u);
+    next();
   }
 
   /* ---- Events ---- */
@@ -360,8 +420,12 @@
     busy = true; updateButtons(); setPlayState('loading'); setStatus('Sprache wird erzeugt …');
     try {
       if (!hasPuter()) throw new Error('no-puter');
-      const c = await synth(text, false);
-      currentEl = c.el; usingSS = false;
+      const blob = await getBlob();
+      if (currentUrl) URL.revokeObjectURL(currentUrl);
+      currentUrl = URL.createObjectURL(blob);
+      if (!currentEl){ currentEl = new Audio(); wireAudio(currentEl); }
+      currentEl.src = currentUrl;
+      usingSS = false;
       await currentEl.play();
     } catch (e) {
       if ('speechSynthesis' in window){
@@ -383,13 +447,12 @@
 
     busy = true; updateButtons(); dlLabel('Erzeuge …');
     try {
-      const c = await synth(text, true);
-      if (!c.blob) throw new Error('no-blob');
-      const url = URL.createObjectURL(c.blob);
+      const blob = await getBlob();
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = 'golos.mp3';
       document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      setTimeout(() => URL.revokeObjectURL(url), 6000);
       setStatus('MP3 gespeichert.');
     } catch (e) {
       setStatus('Download fehlgeschlagen. Versuch es erneut oder prüfe deine Internetverbindung.', 'error');
